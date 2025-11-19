@@ -1,3 +1,8 @@
-title: RokomariPromoCode
-description: Buy Rokomari books with discount.
-baseurl: "/trial"
+# _config.yml
+title: Rokomari PromoCode
+description: Demo Rokomari coupon / affiliate site
+baseurl: "/recov1"     # <--- important for GitHub Pages hosted at https://<user>.github.io/recov1/
+url: "https://rokomaripromocode.github.io"  # your user GitHub Pages domain (no trailing slash)
+theme: minima
+markdown: kramdown
+plugins: []
