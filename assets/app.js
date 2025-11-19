@@ -1,4 +1,4 @@
-// assets/app.js
+// assets/app.js  (replace existing file)
 document.addEventListener('DOMContentLoaded', function() {
   const searchInput = document.getElementById('header-search-input');
   const resultsContainer = document.getElementById('header-search-results');
@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const menuLinks = document.getElementById('menuLinks');
 
   // 1. mobile menu toggle with staggered animation
-  if (hamburger) {
+  if (hamburger && menuLinks) {
     hamburger.addEventListener('click', () => {
       menuLinks.classList.toggle('active');
       const icon = hamburger.querySelector('i');
@@ -22,13 +22,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // close when clicking outside
+  // close when clicking outside (guarded to avoid errors)
   document.addEventListener('click', (e) => {
+    // ensure elements exist
+    if (!hamburger || !menuLinks) return;
+    // if click outside both hamburger and menuLinks, close menu
     if (!hamburger.contains(e.target) && !menuLinks.contains(e.target) && menuLinks.classList.contains('active')) {
       menuLinks.classList.remove('active');
       const icon = hamburger.querySelector('i');
-      icon.classList.remove('fa-times');
-      icon.classList.add('fa-bars');
+      if (icon) {
+        icon.classList.remove('fa-times');
+        icon.classList.add('fa-bars');
+      }
     }
   });
 
@@ -49,48 +54,58 @@ document.addEventListener('DOMContentLoaded', function() {
     { title: "মিনিকেট চাল - ৫ কেজি", img: "https://via.placeholder.com/50", href: "/groceries.html" }
   );
 
+  // helper to escape single quotes for inline onclick
+  function escapeHtml(s) {
+    if (!s) return '';
+    return s.replace(/'/g, "\\'");
+  }
+
   // 3. search logic
   if (searchInput) {
     searchInput.addEventListener('input', function() {
       const query = this.value.trim().toLowerCase();
 
       if (query.length > 0) {
-        clearBtn.style.display = 'block';
-        searchLens.style.display = 'none';
+        if (clearBtn) clearBtn.style.display = 'block';
+        if (searchLens) searchLens.style.display = 'none';
       } else {
-        clearBtn.style.display = 'none';
-        searchLens.style.display = 'block';
-        resultsContainer.style.display = 'none';
+        if (clearBtn) clearBtn.style.display = 'none';
+        if (searchLens) searchLens.style.display = 'block';
+        if (resultsContainer) resultsContainer.style.display = 'none';
         return;
       }
 
-      const matches = productDatabase.filter(product => product.title.toLowerCase().includes(query));
+      const matches = productDatabase.filter(product => product.title && product.title.toLowerCase().includes(query));
 
-      resultsContainer.style.display = 'block';
-      resultsContainer.innerHTML = '';
+      if (resultsContainer) {
+        resultsContainer.style.display = 'block';
+        resultsContainer.innerHTML = '';
 
-      if (matches.length > 0) {
-        matches.forEach(product => {
-          const a = document.createElement('a');
-          a.className = 'result-item';
-          a.href = product.href || '#';
-          a.innerHTML = `
-            <img src="${product.img}" alt="img">
-            <div class="result-info">
-              <h4 style="margin:0;font-size:14px">${product.title}</h4>
+        if (matches.length > 0) {
+          matches.forEach(product => {
+            const a = document.createElement('a');
+            a.className = 'result-item';
+            a.href = product.href || '#';
+            a.innerHTML = `
+              <img src="${product.img}" alt="img">
+              <div class="result-info">
+                <h4 style="margin:0;font-size:14px">${product.title}</h4>
+              </div>
+            `;
+            resultsContainer.appendChild(a);
+          });
+        } else {
+          // safe access to value for inline onclick
+          const escaped = escapeHtml(this.value || '');
+          resultsContainer.innerHTML = `
+            <div class="no-result-box">
+              <p>কোনো প্রোডাক্ট পাওয়া যায়নি!</p>
+              <button class="request-btn-small" onclick="triggerRequest('${escaped}')">
+                ডিসকাউন্ট রিকুয়েষ্ট পাঠান
+              </button>
             </div>
           `;
-          resultsContainer.appendChild(a);
-        });
-      } else {
-        resultsContainer.innerHTML = `
-          <div class="no-result-box">
-            <p>কোনো প্রোডাক্ট পাওয়া যায়নি!</p>
-            <button class="request-btn-small" onclick="triggerRequest('${escapeHtml(this.value)}')">
-              ডিসকাউন্ট রিকুয়েষ্ট পাঠান
-            </button>
-          </div>
-        `;
+        }
       }
     });
   }
@@ -98,18 +113,18 @@ document.addEventListener('DOMContentLoaded', function() {
   // 4. clear button
   if (clearBtn) {
     clearBtn.addEventListener('click', function() {
-      searchInput.value = '';
-      resultsContainer.style.display = 'none';
+      if (searchInput) searchInput.value = '';
+      if (resultsContainer) resultsContainer.style.display = 'none';
       clearBtn.style.display = 'none';
-      searchLens.style.display = 'block';
-      searchInput.focus();
+      if (searchLens) searchLens.style.display = 'block';
+      if (searchInput) searchInput.focus();
     });
   }
 
   // 5. request button function accessible globally
   window.triggerRequest = function(searchTerm) {
     // hide dropdown
-    resultsContainer.style.display = 'none';
+    if (resultsContainer) resultsContainer.style.display = 'none';
     if (searchInput) searchInput.value = '';
     if (clearBtn) clearBtn.style.display = 'none';
     if (searchLens) searchLens.style.display = 'block';
@@ -127,10 +142,4 @@ document.addEventListener('DOMContentLoaded', function() {
       alert("রিকোয়েস্ট ফর্মের জন্য পেজের নিচে যান।");
     }
   };
-
-  // small helper to escape single quotes inside inline JS call
-  function escapeHtml(s) {
-    if (!s) return '';
-    return s.replace(/'/g, "\\'");
-  }
 });
